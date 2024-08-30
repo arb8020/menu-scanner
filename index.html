@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Scanner</title>
+    <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 20px;
+        }
+        #uploadForm {
+            margin-bottom: 20px;
+        }
+        #scanButton {
+            margin-top: 10px;
+        }
+        #progress {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Menu Scanner</h1>
+    <form id="uploadForm">
+        <input type="file" id="imageInput" accept="image/*" multiple>
+        <button type="submit" id="scanButton">Scan Menu</button>
+    </form>
+    <div id="progress"></div>
+    <textarea id="resultText" placeholder="Scanned text will appear here..."></textarea>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const imageInput = document.getElementById('imageInput');
+        const scanButton = document.getElementById('scanButton');
+        const resultText = document.getElementById('resultText');
+        const progress = document.getElementById('progress');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const files = imageInput.files;
+            
+            if (files.length === 0) {
+                alert('Please select at least one image.');
+                return;
+            }
+
+            scanButton.disabled = true;
+            scanButton.textContent = 'Scanning...';
+            resultText.value = '';
+
+            try {
+                let fullText = '';
+                for (let i = 0; i < files.length; i++) {
+                    progress.textContent = `Processing image ${i + 1} of ${files.length}...`;
+                    const result = await Tesseract.recognize(files[i], 'eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                progress.textContent = `Processing image ${i + 1}: ${Math.round(m.progress * 100)}%`;
+                            }
+                        }
+                    });
+                    fullText += result.data.text + '\n\n';
+                }
+                resultText.value = fullText.trim();
+            } catch (error) {
+                console.error('Error:', error);
+                resultText.value = 'Error scanning menu. Please try again.';
+            } finally {
+                scanButton.disabled = false;
+                scanButton.textContent = 'Scan Menu';
+                progress.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>
