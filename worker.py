@@ -1,3 +1,4 @@
+import threading
 import base64
 import redis
 import json
@@ -128,10 +129,7 @@ def generate_recommendations(menu_text, user_preferences):
     print(f"Generated recommendations: {recommendations}")  # Debug log
     return json.dumps(extract_json(recommendations))
 
-while True:
-    print('Waiting for job...')
-    job = r.brpop('menu_queue', timeout=0)
-    job_data = json.loads(job[1])
+def process_job(job_data):
     print(f'Processing job: {job_data["id"]}')
 
     # Process all menu images
@@ -170,3 +168,15 @@ while True:
     r.set(f"status:{job_data['id']}", 'completed')
 
     print(f'Job {job_data["id"]} completed')
+
+def worker():
+    while True:
+        print('Waiting for job...')
+        job = r.brpop('menu_queue', timeout=0)
+        job_data = json.loads(job[1])
+        
+        # Start a new thread to process the job
+        threading.Thread(target=process_job, args=(job_data,)).start()
+
+if __name__ == "__main__":
+    worker()
