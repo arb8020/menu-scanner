@@ -5,12 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Scanner and Recommender</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
-        h1, h2 { color: #333; }
-        form, #questions, #result { margin-bottom: 20px; }
-        button { cursor: pointer; padding: 10px; background-color: #007bff; color: white; border: none; }
-        button:hover { background-color: #0056b3; }
-        #result { white-space: pre-wrap; }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        form, #questions, #result {
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            cursor: pointer;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="file"] {
+            display: block;
+            margin-bottom: 10px;
+        }
+        #status {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        .answers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .answer-label {
+            flex: 1 0 45%;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .answer-label:hover {
+            background-color: #ced4da;
+        }
+        @media (max-width: 600px) {
+            .answer-label {
+                flex: 1 0 100%;
+            }
+        }
+        .recommendation {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .recommendation h2 {
+            font-size: 1.2em;
+            margin: 0 0 10px 0;
+        }
+        .match-reason, .alternatives {
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+        .match-reason strong, .alternatives strong {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -62,14 +138,17 @@
             
             Object.entries(questions).forEach(([key, question]) => {
                 const questionElem = document.createElement('div');
+                questionElem.className = 'question';
                 questionElem.innerHTML = `
                     <p>${question.question}</p>
-                    ${question.answers.map((answer, index) => `
-                        <label>
-                            <input type="radio" name="q${key}" value="${answer}">
-                            ${answer}
-                        </label>
-                    `).join('')}
+                    <div class="answers">
+                        ${question.answers.map((answer, index) => `
+                            <label class="answer-label">
+                                <input type="radio" name="q${key}" value="${answer}">
+                                ${answer}
+                            </label>
+                        `).join('')}
+                    </div>
                 `;
                 questionsDiv.appendChild(questionElem);
             });
@@ -121,14 +200,16 @@
             
             result.recommendations.forEach((rec, index) => {
                 resultDiv.innerHTML += `
-                    <h3>${index + 1}. ${rec.dish_name}</h3>
-                    <p><strong>Match Reason:</strong> ${rec.match_reason}</p>
-                    <p><strong>Alternatives:</strong> ${rec.alternatives_if_not_exact}</p>
+                    <div class="recommendation">
+                        <h2>${index + 1}. ${rec.dish_name}</h2>
+                        <p class="match-reason"><strong>Match Reason:</strong> ${rec.match_reason}</p>
+                        <p class="alternatives"><strong>Alternatives:</strong> ${rec.alternatives_if_not_exact}</p>
+                    </div>
                 `;
             });
             
             if (result.notes) {
-                resultDiv.innerHTML += `<h3>Additional Notes:</h3><p>${result.notes}</p>`;
+                resultDiv.innerHTML += `<p class="notes"><strong>Additional Notes:</strong> ${result.notes}</p>`;
             }
         }
     </script>
